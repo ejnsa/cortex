@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EJNSA CORTEX | Secure Social Network</title>
+    <style>
+        /* --- DESIGN SYSTEM: DARK TECH --- */
+        :root {
+            --bg: #0a0a0c;
+            --surface: #151518;
+            --accent: #00f2ff;
+            --accent-dim: #007d83;
+            --text-main: #e2e8f0;
+            --text-dim: #94a3b8;
+            --card-border: #2d2d34;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: var(--bg); color: var(--text-main); font-family: 'Inter', system-ui, sans-serif; }
+
+        /* --- NAVIGATION --- */
+        nav {
+            background: rgba(10, 10, 12, 0.98);
+            padding: 10px 5%;
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--card-border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        .brand { font-size: 1.6rem; font-weight: 900; color: var(--accent); letter-spacing: -1px; text-shadow: 0 0 10px rgba(0, 242, 255, 0.3); }
+        .search-bar { 
+            background: #1e1e24; border: 1px solid var(--card-border); 
+            padding: 10px 20px; border-radius: 20px; width: 350px; color: white;
+            transition: 0.3s;
+        }
+        .search-bar:focus {
+            outline: none; border-color: var(--accent); box-shadow: 0 0 15px rgba(0, 242, 255, 0.15);
+        }
+
+        /* --- LAYOUT --- */
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr 300px;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* --- COMPONENTS --- */
+        .card { 
+            background: var(--surface); padding: 20px; border-radius: 12px; 
+            border: 1px solid var(--card-border); margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- CREATE POST --- */
+        .post-input { 
+            flex: 1; background: #0a0a0c; border: 1px solid var(--card-border); 
+            padding: 15px; border-radius: 8px; color: white; 
+            transition: 0.3s ease;
+        }
+        .post-input:focus { outline: none; border-color: var(--accent-dim); }
+        
+        #postButton {
+            background: transparent; border: 1px solid var(--accent); color: var(--accent);
+            padding: 0 20px; border-radius: 8px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
+        }
+        #postButton:hover {
+            background: var(--accent); color: #000; box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+        }
+
+        /* --- FEED POSTS --- */
+        .avatar { width: 45px; height: 45px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), #6865a3); object-fit: cover; }
+        .post { background: var(--surface); border-radius: 12px; border: 1px solid var(--card-border); padding: 20px; margin-bottom: 20px; transition: 0.3s; }
+        .post:hover { border-color: #3f3f4a; }
+        .post-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .post-content { margin-bottom: 15px; color: var(--text-dim); line-height: 1.5; }
+        .post-image-placeholder { 
+            width: 100%; height: 200px; background: #202025; border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center; color: var(--text-dim); margin-bottom: 15px;
+            overflow: hidden;
+        }
+        .post-image-placeholder img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .post:hover .post-image-placeholder img { transform: scale(1.02); }
+        
+        /* --- ACTION & COMMENT SECTION --- */
+        .actions { 
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; 
+            border-top: 1px solid var(--card-border); padding-top: 15px; 
+        }
+        .btn-action { 
+            background: transparent; border: none; color: var(--text-dim); 
+            padding: 10px; cursor: pointer; border-radius: 6px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500;
+        }
+        .btn-action svg { transition: transform 0.3s ease; }
+        
+        /* Interactive Hover States */
+        .btn-like:hover { background: rgba(255, 46, 147, 0.1); color: #ff2e93; }
+        .btn-like:hover svg { transform: scale(1.2) translateY(-2px); stroke: #ff2e93; fill: rgba(255, 46, 147, 0.2); }
+        
+        .btn-comment:hover { background: rgba(0, 242, 255, 0.1); color: var(--accent); }
+        .btn-comment:hover svg { transform: scale(1.1); stroke: var(--accent); }
+        
+        .btn-share:hover { background: rgba(0, 255, 136, 0.1); color: #00ff88; }
+        .btn-share:hover svg { transform: scale(1.1) translateX(3px) translateY(-3px); stroke: #00ff88; }
+
+        /* Mock Comment Input Box */
+        .comment-section {
+            display: flex; align-items: center; gap: 12px; margin-top: 15px; 
+            padding-top: 15px; border-top: 1px dashed var(--card-border);
+        }
+        .comment-input-box {
+            flex: 1; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--card-border);
+            padding: 10px 15px; border-radius: 20px; color: var(--text-main); font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .comment-input-box:focus {
+            outline: none; border-color: var(--accent-dim); background: #0a0a0c;
+        }
+
+        /* --- SIDEBAR LISTS --- */
+        .nav-link { padding: 12px; cursor: pointer; color: var(--text-dim); border-radius: 6px; transition: 0.2s; margin-bottom: 5px; }
+        .nav-link:hover { background: #202025; color: var(--accent); padding-left: 18px; }
+
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } .sidebars { display: none; } }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="brand">EJNSA CORTEX</div>
+        <input type="text" class="search-bar" placeholder="Search posts, users, networks...">
+        <div class="avatar" style="width: 35px; height: 35px;"><img src="portrait-man-cartoon-style.jpg" alt="Avatar" class="avatar"></div>
+    </nav>
+
+    <main class="container">
+        <aside class="sidebars">
+            <div class="card">
+                <div class="nav-link">🏠 Home</div>
+                <div class="nav-link">👥 Friends</div>
+                <div class="nav-link">🛡️ Security Groups</div>
+                <div class="nav-link">📡 Live Feed</div>
+            </div>
+        </aside>
+
+        <section>
+            <div class="card">
+                <div style="display: flex; gap: 15px;">
+                    <div class="avatar"><img src="social-media.png" alt="Avatar" class="avatar" ></div>
+                    <input id="postInput" type="text" class="post-input" placeholder="What's your update, agent?">
+                    <button id="postButton" type="submit">Post</button>
+                </div>
+            </div>
+
+            <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                
+                <div class="actions">
+                    <button class="btn-action btn-like">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                        Like
+                    </button>
+                    <button class="btn-action btn-comment">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        Comment
+                    </button>
+                    <button class="btn-action btn-share">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        Share
+                    </button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+
+            <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower2">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+
+            <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower3">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+
+            <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower4">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+            <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower5">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower6">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower7">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower8">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower9">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower10">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower11">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower12">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower13">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower14">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower15">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower16">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower17">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower18">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower19">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower20">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower21">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower22">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower23">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower24">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower25">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower26">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower27">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower28">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower29">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower30">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower31">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower32">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower33">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower34">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower35">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower36">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower37">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower38">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower39">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower40">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower41">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower42">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower43">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower44">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower45">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower46">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower47">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower48">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower49">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower50">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+                        <article class="post">
+                <div class="post-header">
+                    <div class="avatar"><img src="hacker.png" alt="Avatar" class="avatar"></div>
+                    <div><strong>Neon Developer</strong><br><small style="color: var(--accent-dim)">1h ago</small></div>
+                </div>
+                <p class="post-content" id="postShower51">Just pushed the latest security patch to the main server. The architecture is looking solid.</p>
+                <div class="post-image-placeholder"><img src="space.jpg" alt="Picture"></div>
+                <div class="actions">
+                    <button class="btn-action btn-like"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Like</button>
+                    <button class="btn-action btn-comment"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Comment</button>
+                    <button class="btn-action btn-share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Share</button>
+                </div>
+                <div class="comment-section">
+                    <div class="avatar" style="width: 28px; height: 28px;"></div>
+                    <input type="text" class="comment-input-box" placeholder="Write a comment...">
+                </div>
+            </article>
+        </section>
+
+        <aside class="sidebars">
+            <div class="card">
+                <h3 style="margin-bottom:15px; color: var(--accent);">Trending Sectors</h3>
+                <div class="nav-link"><a href="https://simple.wikipedia.org/wiki/Cybersecurity" style="text-decoration: none;">#CyberSecurity</a></div>
+                <div class="nav-link"><a href="https://en.wikipedia.org/wiki/Quantum_computing" style="text-decoration: none;">#QuantumComputing</a></div>
+                <div class="nav-link"><a href="https://en.wikipedia.org/wiki/DevOps" style="text-decoration: none;">#DevOps</a></div>
+            </div>
+        </aside>
+    </main>
+    <script src="Demo.js"></script>
+
+</body>
+</html>
